@@ -2,7 +2,7 @@
 
 namespace VerveClothingApi.Interfaces
 {
-    public interface IIventoryItemRepository
+    public interface IInventoryItemRepository
     {
         Task<InventoryItemDto> GetByIdAsync(int id);
         Task<InventoryItemDto> GetByVariantIdAsync(int variantId);
