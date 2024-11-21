@@ -1,0 +1,6 @@
+@VerveClothingApi_HostAddress = http://localhost:5207
+
+GET {{VerveClothingApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
