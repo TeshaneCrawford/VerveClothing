@@ -6,10 +6,16 @@ using VerveClothingApi.Interfaces;
 
 namespace VerveClothingApi.Data.Repositories
 {
-    public class CategoryRepository(ApplicationDbContext context, IMapper mapper) : ICategoryRepository
+    public class CategoryRepository : ICategoryRepository
     {
-        private readonly ApplicationDbContext _context = context;
-        private readonly IMapper _mapper = mapper;
+        private readonly ApplicationDbContext _context;
+        private readonly IMapper _mapper;
+
+        public CategoryRepository(ApplicationDbContext context, IMapper mapper)
+        {
+            _context = context;
+            _mapper = mapper;
+        }
 
         public async Task<CategoryDto> GetByIdAsync(int id)
         {
@@ -21,6 +27,29 @@ namespace VerveClothingApi.Data.Repositories
         {
             var categories = await _context.Categories.ToListAsync();
             return _mapper.Map<IEnumerable<CategoryDto>>(categories);
+        }
+
+        public async Task<PagedResult<CategoryDto>> GetAllAsync(int page = 1, int pageSize = 10)
+        {
+            var query = _context.Categories
+                .Include(c => c.ChildCategories)
+                .AsNoTracking();
+
+            var totalItems = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+            var categories = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return new PagedResult<CategoryDto>
+            {
+                Items = _mapper.Map<IEnumerable<CategoryDto>>(categories),
+                TotalItems = totalItems,
+                PageNumber = page,
+                TotalPages = totalPages
+            };
         }
 
         public async Task<CategoryDto> CreateAsync(CreateCategoryDto createCategoryDto)
@@ -49,6 +78,11 @@ namespace VerveClothingApi.Data.Repositories
             _context.Categories.Remove(category);
             await _context.SaveChangesAsync();
             return true;
+        }
+
+        public async Task<bool> ExistsAsync(int id)
+        {
+            return await _context.Categories.AnyAsync(c => c.CategoryId == id);
         }
     }
 }

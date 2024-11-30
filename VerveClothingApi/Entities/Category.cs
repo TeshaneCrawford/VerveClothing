@@ -10,6 +10,7 @@ namespace VerveClothingApi.Entities
         public int? ParentCategoryId { get; set; }
         public Category ParentCategory { get; set; }
 
-        public ICollection<CategoryProduct> CategoryProducts { get; set; }
+        public ICollection<Category> ChildCategories { get; set; } = new List<Category>();
+        public ICollection<CategoryProduct> CategoryProducts { get; set; } = new List<CategoryProduct>();
     }
 }

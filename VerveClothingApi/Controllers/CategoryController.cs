@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using VerveClothingApi.DTOs;
 using VerveClothingApi.Services;
+using FluentValidation;
+using FluentValidation.Results;
 
 namespace VerveClothingApi.Controllers
 {
@@ -11,11 +13,19 @@ namespace VerveClothingApi.Controllers
     {
         private readonly ICategoryService _categoryService;
         private readonly ILogger<CategoryController> _logger;
+        private readonly IValidator<CreateCategoryDto> _createValidator;
+        private readonly IValidator<UpdateCategoryDto> _updateValidator;
 
-        public CategoryController(ICategoryService categoryService, ILogger<CategoryController> logger)
+        public CategoryController(
+            ICategoryService categoryService, 
+            ILogger<CategoryController> logger,
+            IValidator<CreateCategoryDto> createValidator,
+            IValidator<UpdateCategoryDto> updateValidator)
         {
             _categoryService = categoryService;
             _logger = logger;
+            _createValidator = createValidator;
+            _updateValidator = updateValidator;
         }
 
         [HttpGet]
@@ -41,6 +51,10 @@ namespace VerveClothingApi.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateCategory([FromBody] CreateCategoryDto createCategoryDto)
         {
+            var validationResult = await _createValidator.ValidateAsync(createCategoryDto);
+            if (!validationResult.IsValid)
+                return BadRequest(validationResult.Errors);
+
             try
             {
                 var category = await _categoryService.CreateCategoryAsync(createCategoryDto);
@@ -59,6 +73,10 @@ namespace VerveClothingApi.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> UpdateCategory(int id, [FromBody] UpdateCategoryDto updateCategoryDto)
         {
+            var validationResult = await _updateValidator.ValidateAsync(updateCategoryDto);
+            if (!validationResult.IsValid)
+                return BadRequest(validationResult.Errors);
+
             try
             {
                 var category = await _categoryService.UpdateCategoryAsync(id, updateCategoryDto);
