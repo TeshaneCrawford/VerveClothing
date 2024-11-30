@@ -3,7 +3,7 @@ using VerveClothingApi.Exceptions;
 using VerveClothingApi.Interfaces;
 using Microsoft.Extensions.Caching.Memory;
 using VerveClothingApi.Common;
-using System.ComponentModel.DataAnnotations;
+using FluentValidation;
 
 namespace VerveClothingApi.Services
 {
@@ -14,7 +14,7 @@ namespace VerveClothingApi.Services
         Task<ProductDto> CreateProductAsync(CreateProductDto createProductDto);
         Task<ProductDto> UpdateProductAsync(int id, UpdateProductDto updateProductDto);
         Task<bool> DeleteProductAsync(int id);
-        Task<PagedResult<ProductDto>> GetProductsAsync(ProductFilterParams filterParams);
+        Task<Common.PagedResult<ProductDto>> GetProductsAsync(ProductFilterParams filterParams);
         Task<IEnumerable<ProductDto>> SearchProductsAsync(string searchTerm);
         Task<bool> ValidateProductAvailabilityAsync(int id, int quantity);
     }
@@ -24,15 +24,21 @@ namespace VerveClothingApi.Services
         private readonly IProductRepository _productRepository;
         private readonly IMemoryCache _cache;
         private readonly ILogger<ProductService> _logger;
+        private readonly IValidator<CreateProductDto> _createValidator;
+        private readonly IValidator<UpdateProductDto> _updateValidator;
 
         public ProductService(
             IProductRepository productRepository,
             IMemoryCache cache,
-            ILogger<ProductService> logger)
+            ILogger<ProductService> logger,
+            IValidator<CreateProductDto> createValidator,
+            IValidator<UpdateProductDto> updateValidator)
         {
             _productRepository = productRepository;
             _cache = cache;
             _logger = logger;
+            _createValidator = createValidator;
+            _updateValidator = updateValidator;
         }
 
         public async Task<ProductDto> GetProductByIdAsync(int id)
@@ -56,14 +62,16 @@ namespace VerveClothingApi.Services
             return await _productRepository.GetAllAsync();
         }
 
-        public async Task<PagedResult<ProductDto>> GetProductsAsync(ProductFilterParams filterParams)
+        public async Task<Common.PagedResult<ProductDto>> GetProductsAsync(ProductFilterParams filterParams)
         {
             return await _productRepository.GetFilteredAsync(filterParams);
         }
 
         public async Task<ProductDto> CreateProductAsync(CreateProductDto createProductDto)
         {
-            ValidateProductData(createProductDto);
+            var validationResult = await _createValidator.ValidateAsync(createProductDto);
+            if (!validationResult.IsValid)
+                throw new ValidationException(validationResult.Errors);
             
             try
             {
@@ -78,22 +86,16 @@ namespace VerveClothingApi.Services
             }
         }
 
-        private void ValidateProductData(CreateProductDto dto)
-        {
-            if (dto.BasePrice <= 0)
-                throw new ValidationException("Price must be greater than zero");
-
-            if (string.IsNullOrWhiteSpace(dto.Name))
-                throw new ValidationException("Product name is required");
-
-            // Add more validation as needed
-        }
-
         public async Task<ProductDto> UpdateProductAsync(int id, UpdateProductDto updateProductDto)
         {
+            var validationResult = await _updateValidator.ValidateAsync(updateProductDto);
+            if (!validationResult.IsValid)
+                throw new FluentValidation.ValidationException(validationResult.Errors);
+
             var product = await _productRepository.UpdateAsync(id, updateProductDto);
             if (product == null)
                 throw new ProductNotFoundException(id);
+            
             return product;
         }
 
