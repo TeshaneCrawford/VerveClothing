@@ -3,6 +3,9 @@ using VerveClothingApi.Data.Repositories;
 using VerveClothingApi.Interfaces;
 using VerveClothingApi.Mappings;
 using VerveClothingApi.Middleware;
+using FluentValidation;
+using FluentValidation.AspNetCore;
+using VerveClothingApi.Validators;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +25,11 @@ builder.Services.AddScoped<ICouponRepository, CouponRepository>();
 builder.Services.AddScoped<IInventoryItemRepository, InventoryItemRepository>();
 
 // Add FluentValidation validators
+builder.Services.AddValidatorsFromAssemblyContaining<CreateProductValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<UpdateProductValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<CreateCategoryDtoValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<UpdateCategoryDtoValidator>();
+builder.Services.AddFluentValidationAutoValidation();
 
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
