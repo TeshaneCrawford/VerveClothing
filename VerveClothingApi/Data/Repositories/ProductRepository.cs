@@ -66,7 +66,7 @@ namespace VerveClothingApi.Data.Repositories
             return true;
         }
 
-        public async Task<PagedResult<ProductDto>> GetFilteredAsync(ProductFilterParams filterParams)
+        public async Task<Common.PagedResult<ProductDto>> GetFilteredAsync(ProductFilterParams filterParams)
         {
             var query = _context.Products.AsQueryable();
 
@@ -93,13 +93,12 @@ namespace VerveClothingApi.Data.Repositories
                 .Take(filterParams.PageSize)
                 .ToListAsync();
 
-            return new PagedResult<ProductDto>
-            {
-                Items = _mapper.Map<IEnumerable<ProductDto>>(items),
-                TotalItems = totalItems,
-                PageNumber = filterParams.Page,
-                PageSize = filterParams.PageSize
-            };
+            return new Common.PagedResult<ProductDto>(
+                _mapper.Map<IEnumerable<ProductDto>>(items),
+                totalItems,
+                filterParams.Page,
+                filterParams.PageSize
+            );
         }
 
         public async Task<IEnumerable<ProductDto>> SearchByTermAsync(string searchTerm)
