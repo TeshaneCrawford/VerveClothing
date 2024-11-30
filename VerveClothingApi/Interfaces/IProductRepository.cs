@@ -1,4 +1,5 @@
 ﻿using VerveClothingApi.DTOs;
+using VerveClothingApi.Common;
 
 namespace VerveClothingApi.Interfaces
 {
@@ -9,5 +10,8 @@ namespace VerveClothingApi.Interfaces
         Task<ProductDto> CreateAsync(CreateProductDto createProductDto);
         Task<ProductDto> UpdateAsync(int id, UpdateProductDto updateProductDto);
         Task<bool> DeleteAsync(int id);
+        Task<PagedResult<ProductDto>> GetFilteredAsync(ProductFilterParams filterParams);
+        Task<IEnumerable<ProductDto>> SearchByTermAsync(string searchTerm);
+        Task<int> GetStockQuantityAsync(int productId);
     }
 }
