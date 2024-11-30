@@ -6,10 +6,20 @@ using VerveClothingApi.Middleware;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using VerveClothingApi.Validators;
+using Microsoft.EntityFrameworkCore;
+using VerveClothingApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddAutoMapper(typeof(MappingProfile));
+// Add database context
+builder.Services.AddDbContext<VerveClothingApi.Data.ApplicationDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Add AutoMapper
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
+// Add Memory Cache
+builder.Services.AddMemoryCache();
 
 // Add services to the container.
 
@@ -23,6 +33,18 @@ builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<IWishlistItemRepository, WishlistItemRepository>();
 builder.Services.AddScoped<ICouponRepository, CouponRepository>();
 builder.Services.AddScoped<IInventoryItemRepository, InventoryItemRepository>();
+
+// Register services
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IProductVariantService, ProductVariantService>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
+builder.Services.AddScoped<IWishlistItemService, WishlistItemService>();
+builder.Services.AddScoped<ICouponService, CouponService>();
+builder.Services.AddScoped<IInventoryItemService, InventoryItemService>();
+//
 
 // Add FluentValidation validators
 builder.Services.AddValidatorsFromAssemblyContaining<CreateProductValidator>();

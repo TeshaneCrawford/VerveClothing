@@ -31,25 +31,53 @@ namespace VerveClothingApi.Data.Repositories
 
         public async Task<UserDto> CreateAsync(CreateUserDto createUserDto)
         {
-            var user = _mapper.Map<User>(createUserDto);
-            //user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(createUserDto.Password);
-            user.CreatedAt = DateTime.UtcNow;
+            if (createUserDto == null)
+                throw new ArgumentNullException(nameof(createUserDto));
 
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
+            var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == createUserDto.Email);
+            if (existingUser != null)
+            {
+                throw new InvalidOperationException("Email already exists");
+            }
 
-            return _mapper.Map<UserDto>(user);
+            try
+            {
+                var user = _mapper.Map<User>(createUserDto);
+                user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(createUserDto.Password, BCrypt.Net.BCrypt.GenerateSalt(12));
+                user.CreatedAt = DateTime.UtcNow;
+                user.UpdatedAt = DateTime.UtcNow;
+
+                _context.Users.Add(user);
+                await _context.SaveChangesAsync();
+
+                return _mapper.Map<UserDto>(user);
+            }
+            catch (BCrypt.Net.SaltParseException ex)
+            {
+                throw new InvalidOperationException("Error hashing password", ex);
+            }
         }
 
         public async Task<UserDto?> UpdateAsync(int id, UpdateUserDto updateUserDto)
         {
+            if (updateUserDto == null)
+                throw new ArgumentNullException(nameof(updateUserDto));
+
             var user = await _context.Users.FindAsync(id);
             if (user == null) return null;
 
-            _mapper.Map(updateUserDto, user);
-            await _context.SaveChangesAsync();
+            try
+            {
+                _mapper.Map(updateUserDto, user);
+                user.UpdatedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
 
-            return _mapper.Map<UserDto>(user);
+                return _mapper.Map<UserDto>(user);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Error updating user", ex);
+            }
         }
 
         public async Task<bool> DeleteAsync(int id)

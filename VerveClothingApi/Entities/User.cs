@@ -6,6 +6,14 @@ namespace VerveClothingApi.Entities
 {
     public class User
     {
+        public User()
+        {
+            Orders = new List<Order>();
+            Addresses = new List<Address>();
+            Reviews = new List<Review>();
+            WishlistItems = new List<WishlistItem>();
+        }
+
         public int UserId { get; set; }
         [Required, EmailAddress]
         public string Email { get; set; }
@@ -18,6 +26,7 @@ namespace VerveClothingApi.Entities
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public DateTime? LastLogin { get; set; }
+        public DateTime? DateOfBirth { get; set; }
 
         public ICollection<Order> Orders { get; set; }
         public ICollection<Address> Addresses { get; set; }
