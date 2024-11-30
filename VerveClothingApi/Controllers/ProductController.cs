@@ -21,7 +21,7 @@ namespace VerveClothingApi.Controllers
         }
 
         [HttpGet]
-        [ProducesResponseType(typeof(PagedResult<ProductDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(Common.PagedResult<ProductDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetProducts([FromQuery] ProductFilterParams filterParams)
         {
             var products = await _productService.GetProductsAsync(filterParams);
