@@ -20,8 +20,12 @@ namespace VerveClothingApi.Mappings
             CreateMap<UpdateProductDto, Product>()
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
 
-            // Category mappings
-            CreateMap<Category, CategoryDto>();
+            // Generic PagedResult mapping
+            CreateMap(typeof(PagedResult<>), typeof(PagedResult<>));
+
+            // Category mappings with recursive child categories
+            CreateMap<Category, CategoryDto>()
+                .ForMember(dest => dest.ChildCategories, opt => opt.MapFrom(src => src.ChildCategories));
             CreateMap<CreateCategoryDto, Category>();
             CreateMap<UpdateCategoryDto, Category>()
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
